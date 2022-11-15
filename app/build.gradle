@@ -96,12 +96,12 @@ dependencies {
     testImplementation "org.mockito:mockito-core:2.8.9"
 
     // AndroidX Test - JVM testing
-    testImplementation "androidx.test:core-ktx:1.2.0-beta01"
+    testImplementation "androidx.test:core-ktx:1.5.0"
     testImplementation "androidx.test.ext:junit-ktx:1.1.1"
     testImplementation "androidx.test:rules:1.2.0-beta01"
 
     // AndroidX Test - Instrumented testing
-    androidTestImplementation "androidx.test:core-ktx:1.2.0-beta02"
+    androidTestImplementation "androidx.test:core-ktx:1.5.0"
     androidTestImplementation "androidx.test.ext:junit-ktx:1.1.1"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.2.1"
     androidTestImplementation "androidx.test:rules:1.2.0-beta01"
@@ -115,7 +115,7 @@ dependencies {
     androidTestImplementation "junit:junit:4.12"
 
     implementation "androidx.fragment:fragment-testing:1.1.0-alpha07"
-    implementation "androidx.test:core:1.2.0-beta01"
+    implementation "androidx.test:core:1.5.0"
     implementation "androidx.fragment:fragment:1.1.0-alpha07"
     androidTestImplementation "org.mockito:mockito-core:2.8.9"
     androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:2.12.1"
