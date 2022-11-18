@@ -11,6 +11,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -73,8 +74,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun onLocationSelected() {
-        _viewModel.setPointOfInterest(_pointOfInterest)
-        _viewModel.navigationCommand.value = NavigationCommand.Back
+        try {
+            _viewModel.setPointOfInterest(_pointOfInterest)
+            _viewModel.navigationCommand.value = NavigationCommand.Back
+        } catch (e: Exception) {
+            _viewModel.showErrorMessage.value = "Please select a point on the map"
+            Log.e(TAG, "onLocationSelected(): ${e.localizedMessage}")
+        }
     }
 
 
@@ -107,6 +113,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         askForPermissionAndGetCurrentLocation()
         setMapStyle()
 
+        enableMyLocation()
         mMap.clear()
         mMap.setOnPoiClickListener { pointOfInterest ->
             mMap.clear()
@@ -137,10 +144,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
 
         mMap.setOnMapLongClickListener { latLng ->
-
             mMap.clear()
-
-            val customPoint = PointOfInterest(latLng, "place_id", "place_name")
+            val customPoint = PointOfInterest(
+                latLng,
+                "place_id",
+                "Lat: ${latLng.latitude}, Lng: ${latLng.longitude}"
+            )
             this._pointOfInterest = customPoint
             _viewModel.setPointOfInterest(customPoint)
             _viewModel.onLocationSelected()
@@ -163,11 +172,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun askForPermissionAndGetCurrentLocation() {
-        if (ContextCompat.checkSelfPermission(
-                requireActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (isPermissionGranted()) {
             getCurrentUserLocation()
         } else {
             ActivityCompat.requestPermissions(
@@ -179,18 +184,61 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     @SuppressLint("MissingPermission")
+    private fun enableMyLocation() {
+        if (isPermissionGranted()) {
+            mMap.isMyLocationEnabled = true
+            getCurrentUserLocation()
+        } else {
+            askForPermissionAndGetCurrentLocation()
+        }
+    }
+
+    private fun isPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireActivity(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>, grantResults: IntArray
+    ) {
+        when (requestCode) {
+            REQUEST_LOCATION_PERMISSION -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() &&
+                            grantResults[0] == PackageManager.PERMISSION_DENIED)
+                ) {
+                    _viewModel.showSnackBar.value =
+                        "You have to allow this app to use map location to get your current location"
+                } else {
+                    enableMyLocation()
+                }
+                return
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
     private fun getCurrentUserLocation() {
 
         //get user's current location
         mMap.isMyLocationEnabled = true
-        client.lastLocation.addOnSuccessListener { location ->
-            location?.let {
-                val latlng = LatLng(it.latitude, it.longitude)
-                mMap.addMarker(
-                    MarkerOptions()
-                        .position(latlng)
-                        .title(getString(R.string.my_current_location))
-                )
+        client.lastLocation.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val taskResult = task.result
+                taskResult?.run {
+                    val latlng = LatLng(latitude, longitude)
+                    mMap.addMarker(
+                        MarkerOptions()
+                            .position(latlng)
+                            .title(getString(R.string.my_current_location))
+                    )
+                    val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlng, 10f)
+                    mMap.animateCamera(cameraUpdate)
+                }
             }
         }
     }

@@ -9,6 +9,7 @@ import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +28,7 @@ class SaveReminderViewModelTest {
     lateinit var reminderFakeRepository: ReminderDataSource
     lateinit var saveReminderViewModel: SaveReminderViewModel
 
+    @Before
     fun initTheRepoAndViewModel() {
         stopKoin()
         reminderFakeRepository = FakeDataSource()
@@ -48,7 +50,7 @@ class SaveReminderViewModelTest {
     fun validateReminder_InvalidReminder() {
         val tmpReminder = createReminder(true)
 
-        val result = saveReminderViewModel.validateAndSaveReminder(tmpReminder)
+        val result = saveReminderViewModel.validateEnteredData(tmpReminder)
 
         assertThat(result, `is`(false))
     }
@@ -57,7 +59,7 @@ class SaveReminderViewModelTest {
     fun validateReminder_validReminder() {
         val tmpReminder = createReminder(false)
 
-        val result = saveReminderViewModel.validateAndSaveReminder(tmpReminder)
+        val result = saveReminderViewModel.validateEnteredData(tmpReminder)
 
         assertThat(result, `is`(true))
     }

@@ -5,6 +5,7 @@ import android.app.Application
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.withDecorView
@@ -17,12 +18,11 @@ import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
-import com.udacity.project4.util.DataBindingIdlingResource
-import com.udacity.project4.util.monitorActivity
+import com.udacity.project4.utils.ToastManager
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.not
-import org.hamcrest.core.Is.`is`
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,6 +33,7 @@ import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
 
+
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 //END TO END test to black box test the app
@@ -41,7 +42,7 @@ class RemindersActivityTest :
 
     private lateinit var repository: ReminderDataSource
     private lateinit var appContext: Application
-    private val dataBindingIdlingResource = DataBindingIdlingResource()
+//    private val dataBindingIdlingResource = DataBindingIdlingResource()
 
     /**
      * As we use Koin as a Service Locator Library to develop our code, we'll also use Koin to test our code.
@@ -80,6 +81,16 @@ class RemindersActivityTest :
         }
     }
 
+    @Before
+    fun registerIdlingResource() {
+        IdlingRegistry.getInstance().register(ToastManager.getIdlingResource())
+    }
+
+    @After
+    fun unregisterIdlingResource() {
+        IdlingRegistry.getInstance().unregister(ToastManager.getIdlingResource())
+    }
+
 
 //    (DONE) TODO: add End to End testing to the app
 
@@ -89,7 +100,7 @@ class RemindersActivityTest :
 
         // start RemindersActivity
         val scenario = ActivityScenario.launch(RemindersActivity::class.java)
-        dataBindingIdlingResource.monitorActivity(scenario)
+//        dataBindingIdlingResource.monitorActivity(scenario)
 
         // click on add Reminders FAB
         onView(withId(R.id.addReminderFAB)).perform(click())
@@ -105,7 +116,7 @@ class RemindersActivityTest :
     fun addReminderLocationFromMap_saveReminder() {
         // start RemindersActivity
         val scenario = ActivityScenario.launch(RemindersActivity::class.java)
-        dataBindingIdlingResource.monitorActivity(scenario)
+//        dataBindingIdlingResource.monitorActivity(scenario)
 
         // click on add Reminders FAB
         onView(withId(R.id.addReminderFAB)).perform(click())
@@ -131,11 +142,21 @@ class RemindersActivityTest :
         //click saveReminder btn
         onView(withId(R.id.saveReminder)).perform(click())
 
-        //make sure the saved Toast message is displayed
-        onView(withText("Reminder Saved !")).inRoot(
-            withDecorView(not(`is`(getActivity(scenario)!!.window.decorView)))
-        ).check(matches(isDisplayed()))
+        //make sure the added Toast message is displayed
+        onView(withText("Geofence added"))
+            .inRoot(withDecorView(not(getActivity(scenario)?.window?.decorView)))
+            .check(
+                matches(isDisplayed())
+            )
 
+        ToastManager.increment()
+
+        //make sure the saved Toast message is displayed
+        onView(withText("Reminder Saved!"))
+            .inRoot(withDecorView(not(getActivity(scenario)?.window?.decorView)))
+            .check(
+                matches(isDisplayed())
+            )
         //close activity
         scenario.close()
     }
@@ -153,7 +174,7 @@ class RemindersActivityTest :
     fun checkReminderLocationValidation_showSnackbarMessage() {
         // start RemindersActivity
         val scenario = ActivityScenario.launch(RemindersActivity::class.java)
-        dataBindingIdlingResource.monitorActivity(scenario)
+//        dataBindingIdlingResource.monitorActivity(scenario)
 
         // click on add Reminders FAB
         onView(withId(R.id.addReminderFAB)).perform(click())
