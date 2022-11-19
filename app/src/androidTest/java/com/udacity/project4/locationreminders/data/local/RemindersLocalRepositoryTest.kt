@@ -7,6 +7,7 @@ import androidx.test.filters.MediumTest
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
@@ -69,7 +70,7 @@ class RemindersLocalRepositoryTest {
     }
 
     @Test
-    fun insertAllRemindersInDatabase_getReminderById_returnTheSame() = runBlockingTest {
+    fun insertAllRemindersInDatabase_getReminderById_returnTheSame() = runBlocking {
         val testRemindersList = createReminder()
 
         for (reminderDTO in testRemindersList) {
@@ -84,7 +85,7 @@ class RemindersLocalRepositoryTest {
     }
 
     @Test
-    fun dataNotFound_byPassingInvalidId() = runBlockingTest {
+    fun dataNotFound_byPassingInvalidId() = runBlocking {
         val testReminderDTO = remindersLocalRepository.getReminder("Invalid Id")
 
         val error = testReminderDTO as Result.Error

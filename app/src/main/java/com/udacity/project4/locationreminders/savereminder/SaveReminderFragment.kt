@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ResolvableApiException
@@ -233,47 +234,37 @@ class SaveReminderFragment : BaseFragment() {
         if (foregroundAndBackgroundLocationPermissionApproved())
             return
 
-        var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
 
-        val resultCode: Int
         if (runningQOrLater) {
-            permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            resultCode = REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-        } else {
-            resultCode = REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
+            requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
         }
-
-        ActivityCompat.requestPermissions(
-            requireActivity(),
-            permissionsArray,
-            resultCode
-        )
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-
-        if (grantResults.isEmpty() || grantResults[0] == PackageManager.PERMISSION_DENIED ||
-            requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
-            grantResults[1] == PackageManager.PERMISSION_DENIED
-        ) {
-            Snackbar.make(
-                requireView(),
-                "you have to allow the app to use location",
-                Snackbar.LENGTH_INDEFINITE
-            )
-                .setAction("Settings") {
-                    startActivity(Intent().apply {
-                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    })
-                }.show()
+    private val requestLocationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            // PERMISSION NOT GRANTED
+            displaySnackBarWithAction()
+        } else {
+            checkDeviceLocationSettings()
         }
+    }
+
+    private fun displaySnackBarWithAction() {
+        Snackbar.make(
+            requireView(),
+            "you have to allow the app to use location",
+            Snackbar.LENGTH_INDEFINITE
+        )
+            .setAction("Settings") {
+                startActivity(Intent().apply {
+                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            }.show()
     }
 
     @Deprecated("Deprecated in Java")

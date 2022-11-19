@@ -7,7 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import androidx.core.app.ActivityCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.LocationServices
@@ -110,7 +110,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        askForPermissionAndGetCurrentLocation()
+//        askForPermissionAndGetCurrentLocation()
         setMapStyle()
 
         enableMyLocation()
@@ -175,11 +175,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (isPermissionGranted()) {
             getCurrentUserLocation()
         } else {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                REQUEST_LOCATION_PERMISSION
-            )
+
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+//            ActivityCompat.requestPermissions(
+//                requireActivity(),
+//                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+//                REQUEST_LOCATION_PERMISSION
+//            )
         }
     }
 
@@ -200,24 +202,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>, grantResults: IntArray
-    ) {
-        when (requestCode) {
-            REQUEST_LOCATION_PERMISSION -> {
-                // If request is cancelled, the result arrays are empty.
-                if ((grantResults.isNotEmpty() &&
-                            grantResults[0] == PackageManager.PERMISSION_DENIED)
-                ) {
-                    _viewModel.showSnackBar.value =
-                        "You have to allow this app to use map location to get your current location"
-                } else {
-                    enableMyLocation()
-                }
-                return
-            }
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // PERMISSION GRANTED
+            enableMyLocation()
+        } else {
+            // PERMISSION NOT GRANTED
+            _viewModel.showSnackBar.value =
+                "You have to allow this app to use map location to get your current location"
         }
     }
 
@@ -245,7 +239,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun setMapStyle() {
         try {
-
             val success = mMap.setMapStyle(
                 MapStyleOptions.loadRawResourceStyle(
                     requireActivity(),
