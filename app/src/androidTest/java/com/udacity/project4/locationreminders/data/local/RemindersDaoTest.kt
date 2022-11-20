@@ -13,6 +13,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 
 @ExperimentalCoroutinesApi
@@ -56,6 +57,7 @@ class RemindersDaoTest {
         return reminder1 == reminder2
     }
 
+    @Test
     fun insertReminderInDatabase_getReminderById_returnTheSame() = runBlockingTest {
         val testReminderDTO = createReminder()
 
