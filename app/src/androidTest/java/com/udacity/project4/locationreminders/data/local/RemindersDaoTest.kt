@@ -8,6 +8,7 @@ import androidx.test.filters.SmallTest
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
@@ -57,8 +58,9 @@ class RemindersDaoTest {
         return reminder1 == reminder2
     }
 
+    //ToDo: Udacity suggestion to change runBlockingTest to runTest
     @Test
-    fun insertReminderInDatabase_getReminderById_returnTheSame() = runBlockingTest {
+    fun insertReminderInDatabase_getReminderById_returnTheSame() = runTest {
         val testReminderDTO = createReminder()
 
         database.reminderDao().saveReminder(testReminderDTO)
