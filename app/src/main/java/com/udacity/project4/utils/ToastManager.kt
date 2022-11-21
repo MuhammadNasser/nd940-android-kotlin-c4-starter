@@ -22,7 +22,8 @@ object ToastManager {
         object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View?) {
                 if (!idlingResource.isIdleNow) {
-                    idlingResource.increment()
+
+                    idlingResource.decrement()
                 }
             }
 
